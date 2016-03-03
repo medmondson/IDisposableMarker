@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace IDisposableAnalyzer
@@ -28,9 +23,9 @@ namespace IDisposableAnalyzer
 
         public override void Initialize(AnalysisContext context)
         {
-            // TODO: Consider registering other actions that act on syntax instead of or in addition to symbols
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
-            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+            //context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+            context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType); //think this is right as it'll be an object i.e new Disposable
         }
 
         private static void AnalyzeSymbol(SymbolAnalysisContext context)
@@ -38,13 +33,13 @@ namespace IDisposableAnalyzer
             // TODO: Replace the following code with your own analysis, generating Diagnostic objects for any issues you find
             var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-            // Find just those named type symbols with names containing lowercase letters.
-            if (namedTypeSymbol.Name.ToCharArray().Any(char.IsLower))
-            {
-                // For all such symbols, produce a diagnostic.
-                var diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);
+            ImmutableArray<INamedTypeSymbol> interfaces = namedTypeSymbol.AllInterfaces;
 
-                context.ReportDiagnostic(diagnostic);
+            foreach (var disposables in interfaces.Where(x => x.Name == "IDisposable"))
+            {
+                var diagnostic = Diagnostic.Create(Rule, disposables.Locations[0], namedTypeSymbol.Name);
+
+                context.ReportDiagnostic(diagnostic); //Succesfully hit - but message isn't displayed
             }
         }
     }
