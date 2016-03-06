@@ -17,7 +17,7 @@ namespace IDisposableAnalyzer
         private static readonly LocalizableString Description = new LocalizableResourceString(nameof(Resources.AnalyzerDescription), Resources.ResourceManager, typeof(Resources));
         private const string Category = "Naming";
 
-        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
+        private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
 
@@ -33,9 +33,15 @@ namespace IDisposableAnalyzer
             // TODO: Replace the following code with your own analysis, generating Diagnostic objects for any issues you find
             var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-            ImmutableArray<INamedTypeSymbol> interfaces = namedTypeSymbol.AllInterfaces;
+            ImmutableArray<INamedTypeSymbol> allInterfaces = namedTypeSymbol.AllInterfaces;
+            //var typeHaveInterfaces = allInterfaces.Any(x => x.Name == "IDisposable");
 
-            foreach (var disposables in interfaces.Where(x => x.Name == "IDisposable"))
+
+            //var typeHaveInterfaces = interfaces.Any(x => x.Interfaces[0].Name == "IDisposable");
+            //if (!typeHaveInterfaces)
+            //    return;
+
+            foreach (var disposables in allInterfaces.Where(x => x.Name == "IDisposable"))
             {
                 var diagnostic = Diagnostic.Create(Rule, disposables.Locations[0], namedTypeSymbol.Name);
 
