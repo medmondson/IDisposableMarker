@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -11,19 +9,15 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
 
 namespace IDisposableAnalyzer
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(IDisposableAnalyzerCodeFixProvider)), Shared]
+    // ReSharper disable once InconsistentNaming
     public class IDisposableAnalyzerCodeFixProvider : CodeFixProvider
     {
-        private const string title = "Make uppercase";
-
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(IDisposableAnalyzerAnalyzer.DiagnosticId); }
-        }
+        private const string Title = "Encapsuate expression in using statement";
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDisposableAnalyzer.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
@@ -45,9 +39,9 @@ namespace IDisposableAnalyzer
             // Register a code action that will invoke the fix.
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    title: title,
+                    title: Title,
                     createChangedSolution: c => MakeUppercaseAsync(context.Document, declaration, c),
-                    equivalenceKey: title),
+                    equivalenceKey: Title),
                 diagnostic);
         }
 

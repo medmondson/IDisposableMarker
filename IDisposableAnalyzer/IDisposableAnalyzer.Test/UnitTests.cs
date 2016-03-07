@@ -76,7 +76,7 @@ namespace IDisposableAnalyzer.Test
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new IDisposableAnalyzerAnalyzer();
+            return new IDisposableAnalyzer();
         }
     }
 }
