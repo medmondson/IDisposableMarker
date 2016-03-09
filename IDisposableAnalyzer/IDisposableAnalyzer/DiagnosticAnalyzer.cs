@@ -26,18 +26,23 @@ namespace IDisposableAnalyzer
         {
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
             context.RegisterSymbolAction(AnalyzeSymbol, SymbolKind.NamedType);
+            //Still identifying class declarations and NOT the instantiations
+            //Strongly suspect it's the symbol action being registered is of the wrong type
+            //Checkout http://stackoverflow.com/questions/33433487/where-can-i-find-what-symbol-types-are-under-different-symbol-kinds-in-roslyn/33435449
         }
 
         private static void AnalyzeSymbol(SymbolAnalysisContext context)
         {
-            INamedTypeSymbol namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
-
-            ImmutableArray<INamedTypeSymbol> interfacesForType = namedTypeSymbol.Interfaces;
-
-            if (!interfacesForType.Any(i => i.Name == "IDisposable"))
+            var symbol = context.Symbol as ITypeSymbol;
+            if (symbol == null)
                 return;
 
-            var diagnostic = Diagnostic.Create(Rule, namedTypeSymbol.Locations[0], namedTypeSymbol.Name);
+            var interfaces = symbol.Interfaces;
+
+            if (!interfaces.Any(i=>i.Name == "IDisposable"))
+                return;
+
+            var diagnostic = Diagnostic.Create(Rule, symbol.Locations[0], symbol.Name);
             context.ReportDiagnostic(diagnostic);
      
         }
