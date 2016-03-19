@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using InvocationExpressionSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InvocationExpressionSyntax;
 
 namespace IDisposableAnalyzer
 {
@@ -28,7 +29,7 @@ namespace IDisposableAnalyzer
         {
             // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
             //context.RegisterSymbolAction(AnalyzeObjectCreation, SymbolKind.NamedType);
-            context.RegisterSyntaxNodeAction(c=> AnalyzeObjectCreation(c), SyntaxKind.ObjectCreationExpression);
+            context.RegisterSyntaxNodeAction(AnalyzeObjectCreation, SyntaxKind.ObjectCreationExpression);
             //Still identifying class declarations and NOT the instantiations
             //Strongly suspect it's the symbol action being registered is of the wrong type
             //Checkout http://stackoverflow.com/questions/33433487/where-can-i-find-what-symbol-types-are-under-different-symbol-kinds-in-roslyn/33435449
@@ -36,24 +37,24 @@ namespace IDisposableAnalyzer
 
         private static void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
         {
-            //MAKING PROGRESS - PICK UP FROM https://msdn.microsoft.com/en-us/library/mt297717.aspx
-
             ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax) context.Node;
-            //objectCreation.
+
+            SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(context.Node);
+
+            var symbol = symbolInfo.Symbol as IMethodSymbol;
             
-            //SymbolInfo symbolInfo = context.SemanticModel.GetDeclaredSymbol()
+            if (symbol == null)
+                return;
 
-            //var symbol = symbolInfo.Symbol as ITypeSymbol;
-            //if (symbol == null)
-            //    return;
-            
-            //var interfaces = symbol.Interfaces;
+            var interfaces = symbol.ContainingType.Interfaces;
 
-            //if (!interfaces.Any(i => i.Name == "IDisposable"))
-            //    return;
+            if (!interfaces.Any(i => i.Name == "IDisposable"))
+                return;
 
-            //var diagnostic = Diagnostic.Create(Rule, symbol.Locations[0], symbol.Name);
-            //context.ReportDiagnostic(diagnostic);
+            Location location = objectCreation.GetLocation();
+
+            var diagnostic = Diagnostic.Create(Rule, location, symbol.ReceiverType.Name);
+            context.ReportDiagnostic(diagnostic);
 
         }
     }
