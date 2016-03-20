@@ -31,6 +31,8 @@ namespace IDisposableAnalyzer
 
         private static void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
         {
+            //todo is there an async version to be used here?
+
             ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax) context.Node;
 
             SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(context.Node);
