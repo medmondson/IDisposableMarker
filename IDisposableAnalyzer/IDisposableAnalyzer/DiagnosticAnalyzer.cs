@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using InvocationExpressionSyntax = Microsoft.CodeAnalysis.VisualBasic.Syntax.InvocationExpressionSyntax;
 
 namespace IDisposableAnalyzer
 {
@@ -23,16 +22,11 @@ namespace IDisposableAnalyzer
 
         private static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Error, isEnabledByDefault: true, description: Description);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
-            // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Analyzer%20Actions%20Semantics.md for more information
-            //context.RegisterSymbolAction(AnalyzeObjectCreation, SymbolKind.NamedType);
             context.RegisterSyntaxNodeAction(AnalyzeObjectCreation, SyntaxKind.ObjectCreationExpression);
-            //Still identifying class declarations and NOT the instantiations
-            //Strongly suspect it's the symbol action being registered is of the wrong type
-            //Checkout http://stackoverflow.com/questions/33433487/where-can-i-find-what-symbol-types-are-under-different-symbol-kinds-in-roslyn/33435449
         }
 
         private static void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
@@ -53,7 +47,7 @@ namespace IDisposableAnalyzer
 
             Location location = objectCreation.GetLocation();
 
-            var diagnostic = Diagnostic.Create(Rule, location, symbol.ReceiverType.Name);
+            Diagnostic diagnostic = Diagnostic.Create(Rule, location, symbol.ReceiverType.Name);
             context.ReportDiagnostic(diagnostic);
 
         }

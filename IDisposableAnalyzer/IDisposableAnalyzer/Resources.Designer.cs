@@ -71,7 +71,7 @@ namespace IDisposableAnalyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type name &apos;{0}&apos; should be placed in a using statement.
+        ///   Looks up a localized string similar to Type name &apos;{0}&apos; implements interface &apos;IDisposable&apos;, it is recommended to be placed in a using construct.
         /// </summary>
         internal static string AnalyzerMessageFormat {
             get {
