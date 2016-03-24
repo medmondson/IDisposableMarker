@@ -63,24 +63,18 @@ namespace IDisposableAnalyzer
             ObjectCreationExpressionSyntax invocation = typeDecl.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
 
             SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-            INamedTypeSymbol typeSymbol = semanticModel.GetDeclaredSymbol(typeDecl, cancellationToken);
-
-            SyntaxToken tokens = invocation.GetFirstToken();
 
             SyntaxToken firstToken = invocation.GetFirstToken();
-            //var leadingTrivia = firstToken.LeadingTrivia;
-            
-            var trimmedLocal = typeDecl.ReplaceToken(firstToken, firstToken.WithLeadingTrivia(SyntaxTriviaList.Empty));
 
             // Produce a new solution that has all references to that type renamed, including the declaration.
-            Solution originalSolution = document.Project.Solution;
-            OptionSet optionSet = originalSolution.Workspace.Options;
+            //Solution originalSolution = document.Project.Solution;
+            //OptionSet optionSet = originalSolution.Workspace.Options;
 
             //https://blogs.msdn.microsoft.com/csharpfaq/2012/02/06/implementing-a-code-action-using-roslyn/
 
             // Replace the old local declaration with the new local declaration.
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
-            var newRoot = oldRoot.ReplaceNode(typeDecl, trimmedLocal);
+            var newRoot = oldRoot.ReplaceToken(firstToken, SyntaxFactory.Token(SyntaxKind.None));
             // Return document with transformed tree.
             return document.WithSyntaxRoot(newRoot);
         }
