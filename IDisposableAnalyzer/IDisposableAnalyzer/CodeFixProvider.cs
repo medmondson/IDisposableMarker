@@ -37,7 +37,7 @@ namespace IDisposableAnalyzer
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             // Find the type declaration identified by the diagnostic.
-            TypeDeclarationSyntax declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<TypeDeclarationSyntax>().First();
+            LocalDeclarationStatementSyntax declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().First();
 
             var codeAction = CodeAction.Create(Title, c => PlaceInUsing(context.Document, declaration, c), Title);
 
@@ -53,18 +53,17 @@ namespace IDisposableAnalyzer
             //        equivalenceKey: Title),
             //    diagnostic);
         }
-
-        private async Task<Document> PlaceInUsing(Document document, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
+        
+        private async Task<Document> PlaceInUsing(Document document, LocalDeclarationStatementSyntax typeDecl, CancellationToken cancellationToken)
         {
-            //SyntaxTree tree;
-            //if (!document.TryGetSyntaxTree(out tree))
-            //    return new Task<Solution>(null);
-
-            ObjectCreationExpressionSyntax invocation = typeDecl.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
-
+         
             SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
+            IEnumerable<SyntaxNode> oldNode = typeDecl.DescendantNodes().OfType<VariableDeclarationSyntax>();
 
-            SyntaxToken firstToken = invocation.GetFirstToken();
+            var factory = new Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory();
+            
+
+            //SyntaxToken firstToken = invocation.GetFirstToken();
 
             // Produce a new solution that has all references to that type renamed, including the declaration.
             //Solution originalSolution = document.Project.Solution;
@@ -74,9 +73,13 @@ namespace IDisposableAnalyzer
 
             // Replace the old local declaration with the new local declaration.
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
-            var newRoot = oldRoot.ReplaceToken(firstToken, SyntaxFactory.Token(SyntaxKind.None));
+
+            //var newRoot = oldRoot.ReplaceToken(firstToken, SyntaxFactory.Token(SyntaxKind.None));
+            SyntaxNode newRoot = oldRoot.RemoveNode(oldNode.Single(), SyntaxRemoveOptions.KeepNoTrivia);
             // Return document with transformed tree.
-            return document.WithSyntaxRoot(newRoot);
+            return document.WithSyntaxRoot(newRoot); //This line causes the error - how do we add a new root?
+            //return document;
+
         }
 
         private async Task<Solution> MakeUppercaseAsync(Document document, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
