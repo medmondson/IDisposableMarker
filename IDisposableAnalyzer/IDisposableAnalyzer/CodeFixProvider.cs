@@ -44,41 +44,21 @@ namespace IDisposableAnalyzer
             context.RegisterCodeFix(
                 codeAction, diagnostic
                 );
-
-            // Register a code action that will invoke the fix.
-            //context.RegisterCodeFix(
-            //    CodeAction.Create(
-            //        title: Title,
-            //        createChangedSolution: c => MakeUppercaseAsync(context.Document, declaration, c),
-            //        equivalenceKey: Title),
-            //    diagnostic);
         }
         
         private async Task<Document> PlaceInUsing(Document document, LocalDeclarationStatementSyntax typeDecl, CancellationToken cancellationToken)
         {
-         
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
             IEnumerable<SyntaxNode> oldNode = typeDecl.DescendantNodes().OfType<VariableDeclarationSyntax>();
-
-            var factory = new Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory();
-            
-
-            //SyntaxToken firstToken = invocation.GetFirstToken();
-
-            // Produce a new solution that has all references to that type renamed, including the declaration.
-            //Solution originalSolution = document.Project.Solution;
-            //OptionSet optionSet = originalSolution.Workspace.Options;
-
+      
             //https://blogs.msdn.microsoft.com/csharpfaq/2012/02/06/implementing-a-code-action-using-roslyn/
 
             // Replace the old local declaration with the new local declaration.
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
 
-            //var newRoot = oldRoot.ReplaceToken(firstToken, SyntaxFactory.Token(SyntaxKind.None));
-            SyntaxNode newRoot = oldRoot.RemoveNode(oldNode.Single(), SyntaxRemoveOptions.KeepNoTrivia);
+            SyntaxNode newRoot = oldRoot.RemoveNode(oldNode.Single().Parent, SyntaxRemoveOptions.KeepNoTrivia);
+
             // Return document with transformed tree.
-            return document.WithSyntaxRoot(newRoot); //This line causes the error - how do we add a new root?
-            //return document;
+            return document.WithSyntaxRoot(newRoot);
 
         }
 
