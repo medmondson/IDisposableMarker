@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -55,7 +58,15 @@ namespace IDisposableAnalyzer
             // Replace the old local declaration with the new local declaration.
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
 
-            SyntaxNode newRoot = oldRoot.RemoveNode(oldNode.Single().Parent, SyntaxRemoveOptions.KeepNoTrivia);
+          SyntaxNode syntax = SyntaxFactory.UsingStatement(SyntaxFactory.Block() /* the code inside the using block */)
+                .WithDeclaration(SyntaxFactory
+                    .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                    .WithVariables(SyntaxFactory.SingletonSeparatedList(SyntaxFactory
+                        .VariableDeclarator(SyntaxFactory.Identifier("logger"))
+                        .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory
+                            .ObjectCreationExpression(SyntaxFactory.IdentifierName(@"MethodLogger")))))));
+
+            SyntaxNode newRoot = oldRoot.ReplaceNode(oldNode.Single().Parent, new List<SyntaxNode> { syntax });
 
             // Return document with transformed tree.
             return document.WithSyntaxRoot(newRoot);
