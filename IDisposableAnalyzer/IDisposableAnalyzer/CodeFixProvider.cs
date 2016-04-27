@@ -57,16 +57,22 @@ namespace IDisposableAnalyzer
 
             // Replace the old local declaration with the new local declaration.
             var oldRoot = await document.GetSyntaxRootAsync(cancellationToken);
+            LocalDeclarationStatementSyntax originalNode = (LocalDeclarationStatementSyntax) oldNode.Single().Parent;
 
-          SyntaxNode syntax = SyntaxFactory.UsingStatement(SyntaxFactory.Block() /* the code inside the using block */)
-                .WithDeclaration(SyntaxFactory
-                    .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
-                    .WithVariables(SyntaxFactory.SingletonSeparatedList(SyntaxFactory
-                        .VariableDeclarator(SyntaxFactory.Identifier("logger"))
-                        .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory
-                            .ObjectCreationExpression(SyntaxFactory.IdentifierName(@"MethodLogger")))))));
+            string variableName = originalNode.Declaration.Variables[0].Identifier.Text;
 
-            SyntaxNode newRoot = oldRoot.ReplaceNode(oldNode.Single().Parent, new List<SyntaxNode> { syntax });
+            IdentifierNameSyntax identifier = (IdentifierNameSyntax)((ObjectCreationExpressionSyntax) originalNode.Declaration.Variables[0].Initializer.Value).Type;
+            String typeName = identifier.Identifier.Text;
+      
+            SyntaxNode syntax = SyntaxFactory.UsingStatement(SyntaxFactory.Block() /* the code inside the using block */)
+                    .WithDeclaration(SyntaxFactory
+                        .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                        .WithVariables(SyntaxFactory.SingletonSeparatedList(SyntaxFactory
+                            .VariableDeclarator(SyntaxFactory.Identifier(variableName))
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory
+                                .ObjectCreationExpression(SyntaxFactory.IdentifierName(typeName)))))));
+
+            SyntaxNode newRoot = oldRoot.ReplaceNode(originalNode, new List<SyntaxNode> { syntax });
 
             // Return document with transformed tree.
             return document.WithSyntaxRoot(newRoot);
