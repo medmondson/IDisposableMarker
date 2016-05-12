@@ -37,10 +37,10 @@ namespace IDisposableAnalyzer
 
             // TODO: Replace the following code with your own analysis, generating a CodeAction for each fix to suggest
             var diagnostic = context.Diagnostics.First();
-            var diagnosticSpan = diagnostic.Location.SourceSpan;
+            var diagnosticSpan = diagnostic.Location.SourceSpan;               
 
             // Find the type declaration identified by the diagnostic.
-            LocalDeclarationStatementSyntax declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().First();
+            LocalDeclarationStatementSyntax declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().SingleOrDefault();
 
             var codeAction = CodeAction.Create(Title, c => PlaceInUsing(context.Document, declaration, c), Title);
 
@@ -64,13 +64,16 @@ namespace IDisposableAnalyzer
             IdentifierNameSyntax identifier = (IdentifierNameSyntax)((ObjectCreationExpressionSyntax) originalNode.Declaration.Variables[0].Initializer.Value).Type;
             String typeName = identifier.Identifier.Text;
       
+            var hello = new AggregateException();
+
             SyntaxNode syntax = SyntaxFactory.UsingStatement(SyntaxFactory.Block() /* the code inside the using block */)
                     .WithDeclaration(SyntaxFactory
                         .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                         .WithVariables(SyntaxFactory.SingletonSeparatedList(SyntaxFactory
                             .VariableDeclarator(SyntaxFactory.Identifier(variableName))
                             .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory
-                                .ObjectCreationExpression(SyntaxFactory.IdentifierName(typeName)))))));
+                                .ObjectCreationExpression(SyntaxFactory.IdentifierName(typeName))
+                                    .WithArgumentList(SyntaxFactory.ArgumentList()))))));
 
             SyntaxNode newRoot = oldRoot.ReplaceNode(originalNode, new List<SyntaxNode> { syntax });
 
