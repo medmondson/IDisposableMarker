@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -31,15 +33,18 @@ namespace IDisposableAnalyzer
 
         private static void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
         {
-            //todo is there an async version to be used here?
-
-            ObjectCreationExpressionSyntax objectCreation = (ObjectCreationExpressionSyntax) context.Node;
+            var objectCreation = (ObjectCreationExpressionSyntax) context.Node;
 
             SymbolInfo symbolInfo = context.SemanticModel.GetSymbolInfo(context.Node);
-
+            
             var symbol = symbolInfo.Symbol as IMethodSymbol;
             
             if (symbol == null)
+                return;
+
+            bool isAlreadyContainedInUsing = objectCreation.Ancestors().OfType<UsingStatementSyntax>().Any();
+
+            if(isAlreadyContainedInUsing)
                 return;
 
             var interfaces = symbol.ContainingType.Interfaces;

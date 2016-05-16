@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -13,8 +10,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename;
 
 namespace IDisposableAnalyzer
 {
@@ -49,7 +44,7 @@ namespace IDisposableAnalyzer
                 );
         }
         
-        private async Task<Document> PlaceInUsing(Document document, LocalDeclarationStatementSyntax typeDecl, CancellationToken cancellationToken)
+        private static async Task<Document> PlaceInUsing(Document document, LocalDeclarationStatementSyntax typeDecl, CancellationToken cancellationToken)
         {
             IEnumerable<SyntaxNode> oldNode = typeDecl.DescendantNodes().OfType<VariableDeclarationSyntax>();
       
@@ -64,9 +59,7 @@ namespace IDisposableAnalyzer
             IdentifierNameSyntax identifier = (IdentifierNameSyntax)((ObjectCreationExpressionSyntax) originalNode.Declaration.Variables[0].Initializer.Value).Type;
             String typeName = identifier.Identifier.Text;
       
-            var hello = new AggregateException();
-
-            SyntaxNode syntax = SyntaxFactory.UsingStatement(SyntaxFactory.Block() /* the code inside the using block */)
+            SyntaxNode syntax = SyntaxFactory.UsingStatement(SyntaxFactory.Block())
                     .WithDeclaration(SyntaxFactory
                         .VariableDeclaration(SyntaxFactory.IdentifierName("var"))
                         .WithVariables(SyntaxFactory.SingletonSeparatedList(SyntaxFactory
@@ -80,28 +73,6 @@ namespace IDisposableAnalyzer
             // Return document with transformed tree.
             return document.WithSyntaxRoot(newRoot);
 
-        }
-
-        private async Task<Solution> MakeUppercaseAsync(Document document, TypeDeclarationSyntax typeDecl, CancellationToken cancellationToken)
-        {
-            //How to surround object creation expression to a using statement?
-
-            // Compute new uppercase name.
-            SyntaxToken identifierToken = typeDecl.Identifier;
-            string newName = identifierToken.Text.ToUpperInvariant();
-
-            // Get the symbol representing the type to be renamed.
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken);
-            INamedTypeSymbol typeSymbol = semanticModel.GetDeclaredSymbol(typeDecl, cancellationToken);
-
-            // Produce a new solution that has all references to that type renamed, including the declaration.
-            Solution originalSolution = document.Project.Solution;
-            OptionSet optionSet = originalSolution.Workspace.Options;
-
-            Solution newSolution = await Renamer.RenameSymbolAsync(document.Project.Solution, typeSymbol, newName, optionSet, cancellationToken).ConfigureAwait(false);
-
-            // Return the new solution with the now-uppercase type name.
-            return newSolution;
         }
     }
 }
