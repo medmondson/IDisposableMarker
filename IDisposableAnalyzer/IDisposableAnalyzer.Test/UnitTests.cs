@@ -29,7 +29,18 @@ namespace IDisposableAnalyzer.Test
         [TestMethod]
         public void BasicCode_ExpectDiagnostic() //TODO
         {
-            var sut = @"var sw = new MemoryStream();"; //An iDisposable
+            var sut = @"using System.IO;
+
+                namespace IDisposableAnalyzer.Test.ExampleClass
+                {
+                    class MemoryStreamExample
+                    {
+                        public MemoryStreamExample()
+                        {
+                            var ms = new MemoryStream();
+                        }
+                    }
+                }";
 
             var expected = new DiagnosticResult
             {
