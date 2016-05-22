@@ -45,7 +45,7 @@ namespace IDisposableAnalyzer
             if(isAlreadyContainedInUsing)
                 return;
 
-            var interfaces = symbol.ContainingType.Interfaces;
+            var interfaces = symbol.ContainingType.AllInterfaces;
 
             if (!interfaces.Any(i => i.Name == "IDisposable"))
                 return;

@@ -3,23 +3,20 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.IO;
 using TestHelper;
-using IDisposableAnalyzer;
 
 namespace IDisposableAnalyzer.Test
 {
     [TestClass]
     public class UnitTest : CodeFixVerifier
     {
-
         //no diagnostic expected
         //diagnostic expected (my code)
         //diagnostic expected (BCL code)
         //fix successful (checking all values etc)
 
         [TestMethod]
-        public void BasicCode_ExpectNoException()
+        public void ExpectNoDiagnostic()
         {
             var sut = @"var notAUsing = true;";
 
@@ -27,7 +24,7 @@ namespace IDisposableAnalyzer.Test
         }
 
         [TestMethod]
-        public void BasicCode_ExpectDiagnostic() //TODO
+        public void ExpectDiagnosticOnBCLType()
         {
             var sut = @"using System.IO;
 
@@ -45,14 +42,65 @@ namespace IDisposableAnalyzer.Test
             var expected = new DiagnosticResult
             {
                 Id = "IDisposableAnalyzer",
-                //Message = String.Format("Type name '{0}' contains lowercase letters", "TypeName"),
-                //Severity = DiagnosticSeverity.Warning,
-                
+                Message = "Type name 'MemoryStream' implements interface 'IDisposable', it is recommended to be placed in a using construct",
+                Severity = DiagnosticSeverity.Error,
+                Locations =
+                    new[] {
+                            new DiagnosticResultLocation("Test0.cs", 9, 38)
+                        }
+
             };
 
             VerifyCSharpDiagnostic(sut, expected);
         }
 
+        [TestMethod]
+        public void ExpectDiagnosticOnCustomType()
+        {
+            string sut = @"using System;
+
+                        namespace IDisposableAnalyzer.Test.ExampleClass
+                        {
+                            class CustomTypeExample
+                            {
+                                public CustomTypeExample()
+                                {
+                                    CanBeDisposedOf disposible = new CanBeDisposedOf();
+                                }
+                            }
+
+                            class CanBeDisposedOf:IDisposable
+                            {
+                                public void Dispose()
+                                {
+                                    throw new NotImplementedException();
+                                }
+                            }
+                        }
+                    ";
+
+            var expected = new DiagnosticResult
+            {
+                Id = "IDisposableAnalyzer",
+                Message = "Type name 'CanBeDisposedOf' implements interface 'IDisposable', it is recommended to be placed in a using construct",
+                Severity = DiagnosticSeverity.Error,
+                Locations =
+                        new[] {
+                            new DiagnosticResultLocation("Test0.cs", 9, 66)
+                        }
+
+            };
+
+            VerifyCSharpDiagnostic(sut, expected);
+
+
+        }
+
+        [TestMethod]
+        public void ExpectCorrectCodeFixOnCustomType()
+        {
+            
+        }
 
         //Diagnostic and CodeFix both triggered and checked for
         [TestMethod]
