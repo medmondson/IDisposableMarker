@@ -4,11 +4,8 @@
     <id>IDisposableAnalyzer</id>
     <version>1.0.0.0</version>
     <title>IDisposableAnalyzer</title>
-    <authors>matt</authors>
-    <owners>matt</owners>
-    <licenseUrl>http://LICENSE_URL_HERE_OR_DELETE_THIS_LINE</licenseUrl>
-    <projectUrl>http://PROJECT_URL_HERE_OR_DELETE_THIS_LINE</projectUrl>
-    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
+    <authors>Matthew Edmondson</authors>
+    <owners>Matthew Edmondson</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>IDisposableAnalyzer</description>
     <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
