@@ -65,7 +65,7 @@ namespace IDisposableAnalyzer.Test.ExampleClass
             {
                 Id = "IDisposableAnalyzer",
                 Message = "Type name 'MemoryStream' implements interface 'IDisposable', it is recommended to be placed in a using construct",
-                Severity = DiagnosticSeverity.Error,
+                Severity = DiagnosticSeverity.Warning,
                 Locations =
                     new[] {
                             new DiagnosticResultLocation("Test0.cs", 9, 38)
@@ -86,7 +86,7 @@ namespace IDisposableAnalyzer.Test.ExampleClass
             {
                 Id = "IDisposableAnalyzer",
                 Message = "Type name 'CanBeDisposedOf' implements interface 'IDisposable', it is recommended to be placed in a using construct",
-                Severity = DiagnosticSeverity.Error,
+                Severity = DiagnosticSeverity.Warning,
                 Locations =
                         new[] {
                             new DiagnosticResultLocation("Test0.cs", 9, 42)
